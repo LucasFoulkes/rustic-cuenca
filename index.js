@@ -1,10 +1,10 @@
+require("dotenv").config();
 const express = require("express");
 var cors = require("cors");
-const app = express();
 const http = require("http");
+const app = express();
 const server = http.createServer(app);
 const { ref } = require("./firebase");
-const c = require("ansi-colors");
 const { filterValid, filterWhitelist } = require("./middleware/filter");
 const io = require("socket.io")(server, {
   cors: {
@@ -13,8 +13,6 @@ const io = require("socket.io")(server, {
   },
 });
 app.use(cors());
-
-const port = 4001;
 
 let rawData;
 let whitelistedTables;
@@ -25,7 +23,6 @@ ref.on("value", function (snapshot) {
   rawData = filterValid(snapshot.val());
   whitelistedTables = filterWhitelist(rawData, whitelist);
   io.emit("rawData", rawData);
-  io.emit("whitelisted", whitelistedTables);
 });
 
 io.on("connection", (socket) => {
@@ -65,6 +62,6 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(port, () => {
-  console.log(`Server listening on port ${port}`);
+server.listen(process.env.PORT, () => {
+  console.log(`Server listening on port ${process.env.PORT}`);
 });
