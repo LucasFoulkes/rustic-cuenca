@@ -13,6 +13,7 @@ const io = require("socket.io")(server, {
   },
 });
 app.use(cors());
+
 const port = 4001;
 
 let rawData;
