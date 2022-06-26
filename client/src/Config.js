@@ -15,14 +15,6 @@ export function Config() {
 
   if (error) return "An error has occurred: " + error.message;
 
-  const createEmployee = async (data: Employee) => {
-    const { data: response } = await axios.post(
-      "https://employee.free.beeceptor.com/create",
-      data
-    );
-    return response.data;
-  };
-
   return (
     <div className="grid grid-cols-7">
       {Object.entries(data).map(([key, value]) => (
