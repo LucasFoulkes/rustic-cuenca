@@ -1,16 +1,10 @@
 import { useEffect, useState } from "react";
-import { subscribe } from "./socket";
-import Tables from "./Tables";
 
 function Raw({ socket }) {
   const [rawData, setRawData] = useState({});
   const [whitelist, setWhitelist] = useState([]);
   useEffect(() => {
     // not sure why the fuck this works but it do
-    return () => {
-      subscribe("rawData", setRawData, socket);
-      subscribe("whitelist", setWhitelist, socket);
-    };
   }, [socket]);
 
   return (

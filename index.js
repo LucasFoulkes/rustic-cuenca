@@ -1,10 +1,12 @@
 const express = require("express");
 var cors = require("cors");
-const app = express();
+const path = require("path");
 const http = require("http");
-const server = http.createServer(app);
 const { ref } = require("./firebase");
-const c = require("ansi-colors");
+const app = express();
+const bodyParser = require("body-parser");
+const server = http.createServer(app);
+const fs = require("fs");
 const { filterValid, filterWhitelist } = require("./middleware/filter");
 const io = require("socket.io")(server, {
   cors: {
@@ -12,58 +14,48 @@ const io = require("socket.io")(server, {
     methods: ["GET", "POST", "PUT", "DELETE"],
   },
 });
-app.use(cors());
-const port = 4001;
 
-let rawData;
-let whitelistedTables;
-let whitelist = new Set();
+const PORT = process.env.PORT || 3001;
+
+function writeToFile(data) {
+  fs.writeFile("./database.json", data, (err) => {
+    if (err) {
+      console.log("File write failed:", err);
+      return;
+    }
+    console.log("File written successfully!");
+  });
+}
 
 ref.on("value", function (snapshot) {
-  console.log("db-change");
-  rawData = filterValid(snapshot.val());
-  whitelistedTables = filterWhitelist(rawData, whitelist);
-  io.emit("rawData", rawData);
-  io.emit("whitelisted", whitelistedTables);
+  io.emit("db_data", { message: "new db_data" });
+  writeToFile(JSON.stringify(filterValid(snapshot.val())));
+  console.log("new db_data");
 });
 
-io.on("connection", (socket) => {
-  console.log(`${socket.id} connected`);
-
-  socket.on("rawData", (data) => {
-    if ((data.message = "subscribe")) {
-      console.log(`${socket.id} subscribed to raw`);
-      socket.emit("rawData", rawData);
-    }
+io.on("connection", function (socket) {
+  console.log(`user ${socket.id} connected`);
+  socket.on("db_data", function (data) {
+    console.log(`user ${socket.id} sent db_data ${data.message}`);
+    socket.emit("db_data", { message: "new db_data" });
   });
-
-  socket.on("whitelist", (data) => {
-    if (data.message === "add") {
-      whitelist.add(data.index);
-      console.log(`${socket.id} added ${data.index} to whitelist`);
-    } else if (data.message === "remove") {
-      whitelist.delete(data.index);
-      console.log(`${socket.id} removed ${data.index} from whitelist`);
-    } else if (data.message === "subscribe") {
-      console.log(`${socket.id} subscribed to whitelist`);
-      socket.emit("whitelist", Array.from(whitelist));
-    }
-    whitelistedTables = filterWhitelist(rawData, whitelist);
-    socket.emit("whitelisted", whitelistedTables);
-  });
-
-  socket.on("whitelisted", (data) => {
-    if (data.message === "subscribe") {
-      console.log(`${socket.id} subscribed to whitelisted`);
-      socket.emit("whitelisted", whitelistedTables);
-    }
-  });
-
-  socket.on("disconnect", () => {
-    console.log(`${socket.id} disconnected`);
+  socket.on("disconnect", function () {
+    console.log(`user ${socket.id} disconnected`);
   });
 });
 
-server.listen(port, () => {
-  console.log(`Server listening on port ${port}`);
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+app.use(cors());
+
+app.use(express.static("client/build"));
+app.use(express.static(path.join(__dirname, "..", "client", "build")));
+app.get("/", (req, res) => {
+  res.sendFile(__dirname + "/client/src/index.html");
+});
+
+app.use("/tables", require("./routes/tables"));
+
+server.listen(PORT, () => {
+  console.log(`Server listening on port ${PORT}`);
 });
