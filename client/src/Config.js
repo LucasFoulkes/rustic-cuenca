@@ -1,32 +1,36 @@
-import { useQuery, useMutation } from "react-query";
-import axios from "axios";
+import { useQuery, useState, useEffect } from "react-query";
+import Tables from "./Tables";
+import { fetchTables, fetchWhitelist } from "./hooks/useFetch";
 
-export function Config() {
-  const style = {
-    order: "bg-red-500",
-    call: "bg-red-500",
-    pay: "bg-red-500",
-    cancel: "bg-green-500",
-  };
-  const { isLoading, error, data } = useQuery("repoData", () =>
-    axios.get("http://localhost:3001/tables").then((res) => res.data)
-  );
-  if (isLoading) return "Loading...";
-
-  if (error) return "An error has occurred: " + error.message;
-
+export function Config(db) {
+  const { data: tables } = useQuery("tables", fetchTables);
+  const { data: whitelist, refetch } = useQuery("whitelist", fetchWhitelist);
   return (
-    <div className="grid grid-cols-7">
-      {Object.entries(data).map(([key, value]) => (
-        <button
-          className={`${
-            style[value.at(-1)[0]]
-          } p-4 text-center hover:bg-slate-200`}
-          key={key}
-        >
-          {parseInt(key, 2).toString(16).toUpperCase()}
-        </button>
-      ))}
-    </div>
+    <>
+      <div>
+        <div className="grid grid-cols-5">
+          {tables && whitelist
+            ? Object.entries(tables).map(([key, value]) => (
+                <Tables
+                  key={key}
+                  index={key}
+                  value={value}
+                  refetch={refetch}
+                  whitelisted={whitelist.includes(key)}
+                />
+              ))
+            : "...loading"}
+        </div>
+      </div>
+      <div>
+        {whitelist
+          ? Object.keys(whitelist).map((key) => (
+              <div key={key}>
+                {parseInt(whitelist[key], 2).toString(16).toUpperCase()}
+              </div>
+            ))
+          : "...loading"}
+      </div>
+    </>
   );
 }

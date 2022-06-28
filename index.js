@@ -20,10 +20,8 @@ const PORT = process.env.PORT || 3001;
 function writeToFile(data) {
   fs.writeFile("./database.json", data, (err) => {
     if (err) {
-      console.log("File write failed:", err);
       return;
     }
-    console.log("File written successfully!");
   });
 }
 
@@ -45,7 +43,8 @@ io.on("connection", function (socket) {
 });
 
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
+// app.use(bodyParser.json());
+app.use(express.json());
 app.use(cors());
 
 app.use(express.static("client/build"));

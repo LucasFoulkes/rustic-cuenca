@@ -9,4 +9,4 @@ firebaseAdmin.initializeApp({
 const db = firebaseAdmin.database();
 const ref = db.ref("/rustic");
 
-module.exports = { ref };
+module.exports = { ref, db };

@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
+import useSendPost from "./hooks/useSendPost.js";
 
-function Tables({ socket, value, index, whitelisted }) {
+function Tables({ index, value, refetch, whitelisted }) {
   const [toggle, setToggle] = useState(false);
   const style = {
     order: "bg-red-500",
@@ -8,6 +9,9 @@ function Tables({ socket, value, index, whitelisted }) {
     pay: "bg-red-500",
     cancel: "bg-green-500",
   };
+  const { mutate: addTable } = useSendPost("add");
+  const { mutate: delTable } = useSendPost("remove");
+
   useEffect(() => {
     if (whitelisted) {
       setToggle(true);
@@ -17,17 +21,18 @@ function Tables({ socket, value, index, whitelisted }) {
   return (
     <button
       onClick={() => {
+        refetch();
         if (toggle) {
-          socket.emit("whitelist", { message: "remove", index: index });
+          delTable({ index });
         } else {
-          socket.emit("whitelist", { message: "add", index: index });
+          addTable({ index });
         }
         setToggle(!toggle);
       }}
       className={
         toggle
-          ? "bg-white  uppercase"
-          : `${style[value.at(-1)[0]]}  uppercase hover:bg-white`
+          ? "bg-white p-4 uppercase hover:bg-slate-400"
+          : `${style[value.at(-1)[0]]}  p-4 uppercase hover:bg-slate-500`
       }
     >
       {parseInt(index, 2).toString(16)}
