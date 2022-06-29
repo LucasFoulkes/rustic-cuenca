@@ -1,30 +1,20 @@
 import "./App.css";
-import { useEffect, useState } from "react";
-import io from "socket.io-client";
-import { Config } from "./Config.js";
-import { QueryClient, QueryClientProvider } from "react-query";
-const socket = io("http://localhost:3001");
+import { socket, SocketContext } from "./Socket";
+import { useState, useEffect } from "react";
+import { UserContext } from "./UserContext";
+import Raw from "./Raw";
 
 function App() {
-  const queryClient = new QueryClient();
-  const [value, setValue] = useState(null);
-  useEffect(() => {
-    socket.on("db_data", (data) => {
-      setValue(data.message);
-      console.log(`received db_data: ${data.message}`);
-    });
-    return () => {
-      socket.emit("db_data", { message: "request" });
-      console.log(`sending request db_data`);
-      socket.off("db_data");
-    };
-  }, []);
+  const [user, setUser] = useState({ id: "admin" });
+  console.log(user);
   return (
-    <QueryClientProvider client={queryClient}>
-      <div className="grid grid-cols-2">
-        <Config db={value} />
-      </div>
-    </QueryClientProvider>
+    <div className="App grid grid-cols-2 ">
+      <SocketContext.Provider value={socket}>
+        <UserContext.Provider value={{ user, setUser }}>
+          <Raw />
+        </UserContext.Provider>
+      </SocketContext.Provider>
+    </div>
   );
 }
 

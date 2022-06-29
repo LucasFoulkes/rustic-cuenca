@@ -1,29 +1,56 @@
-import { useEffect, useState } from "react";
-
-function Raw({ socket }) {
-  const [rawData, setRawData] = useState({});
+import { useContext, useEffect, useState } from "react";
+import { SocketContext } from "./Socket";
+import { UserContext } from "./UserContext";
+import Tables from "./Tables";
+function Raw() {
+  const { user } = useContext(UserContext);
+  const socket = useContext(SocketContext);
   const [whitelist, setWhitelist] = useState([]);
+  const [raw, setRaw] = useState({});
+
   useEffect(() => {
-    // not sure why the fuck this works but it do
-  }, [socket]);
+    console.log("data-request", user);
+    socket.emit("data-request", user);
+    socket.on("db-update", () => {
+      console.log("db-update");
+      socket.emit("data-request", user);
+    });
+    socket.on("db-response", (data) => {
+      console.log(`db-response`, data);
+      setRaw(data.raw);
+      setWhitelist(data.whitelist);
+    });
+    return () => {
+      socket.off("db-update");
+      socket.off("data-request");
+      socket.off("db-response");
+    };
+  }, [socket, user]);
 
   return (
-    <div>
-      <h1 className="text-3xl  uppercase bg-yellow-300 text-center">
-        raw data
-      </h1>
-      <div className="grid grid-cols-5">
-        {Object.entries(rawData).map(([key, value]) => (
-          <Tables
-            socket={socket}
-            key={key}
-            value={value}
-            index={key}
-            whitelisted={whitelist.includes(key)}
-          />
-        ))}
+    <>
+      <div className="grid grid-cols-5 h-screen">
+        {Object.entries(raw).map(([key, value]) => {
+          return (
+            <Tables
+              key={key}
+              index={key}
+              whitelisted={whitelist.includes(key)}
+              value={value[0]}
+            />
+          );
+        })}
       </div>
-    </div>
+      <div>
+        {Object.keys(whitelist).map((key) => {
+          return (
+            <div key={key}>
+              {parseInt(whitelist[key], 2).toString(16).toUpperCase()}
+            </div>
+          );
+        })}
+      </div>
+    </>
   );
 }
 export default Raw;

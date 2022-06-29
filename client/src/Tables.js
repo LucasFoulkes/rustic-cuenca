@@ -1,41 +1,39 @@
-import { useState, useEffect } from "react";
-import useSendPost from "./hooks/useSendPost.js";
+import { useContext, useEffect, useState } from "react";
+import { UserContext } from "./UserContext";
+import { SocketContext } from "./Socket";
 
-function Tables({ index, value, refetch, whitelisted }) {
+function Tables({ index, whitelisted, value }) {
+  console.log(value);
   const [toggle, setToggle] = useState(false);
-  const style = {
-    order: "bg-red-500",
-    call: "bg-red-500",
-    pay: "bg-red-500",
-    cancel: "bg-green-500",
-  };
-  const { mutate: addTable } = useSendPost("add");
-  const { mutate: delTable } = useSendPost("remove");
+  const { user } = useContext(UserContext);
+  const socket = useContext(SocketContext);
 
   useEffect(() => {
-    if (whitelisted) {
-      setToggle(true);
-    }
+    whitelisted ? setToggle(true) : setToggle(false);
   }, [whitelisted]);
 
   return (
     <button
       onClick={() => {
-        refetch();
         if (toggle) {
-          delTable({ index });
+          socket.emit("whitelist-del", {
+            user,
+            index,
+          });
         } else {
-          addTable({ index });
+          socket.emit("whitelist-add", {
+            user,
+            index,
+          });
         }
         setToggle(!toggle);
       }}
-      className={
-        toggle
-          ? "bg-white p-4 uppercase hover:bg-slate-400"
-          : `${style[value.at(-1)[0]]}  p-4 uppercase hover:bg-slate-500`
-      }
+      className={`p-4 ${toggle ? " font-bold  " : "hover:font-bold "} ${
+        value === "cancel" ? "" : "bg-slate-200"
+      }`}
     >
-      {parseInt(index, 2).toString(16)}
+      {parseInt(index, 2).toString(16).toUpperCase()}
+      {toggle ? " ✓" : ""}
     </button>
   );
 }
