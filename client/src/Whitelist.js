@@ -29,7 +29,7 @@ function Raw() {
 
   return (
     <>
-      <div className="grid grid-cols-5 h-screen">
+      <div className="grid grid-cols-6 h-screen">
         {Object.entries(raw).map(([key, value]) => {
           return (
             <Tables
@@ -38,15 +38,6 @@ function Raw() {
               whitelisted={whitelist.includes(key)}
               value={value[0]}
             />
-          );
-        })}
-      </div>
-      <div>
-        {Object.keys(whitelist).map((key) => {
-          return (
-            <div key={key}>
-              {parseInt(whitelist[key], 2).toString(16).toUpperCase()}
-            </div>
           );
         })}
       </div>
