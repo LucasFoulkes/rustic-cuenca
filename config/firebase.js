@@ -1,5 +1,5 @@
 const firebaseAdmin = require("firebase-admin");
-const serviceAccount = require("./config/serviceAccountKey.json");
+const serviceAccount = require("./serviceAccountKey.json");
 
 firebaseAdmin.initializeApp({
   credential: firebaseAdmin.credential.cert(serviceAccount),
@@ -7,6 +7,5 @@ firebaseAdmin.initializeApp({
 });
 
 const db = firebaseAdmin.database();
-const ref = db.ref("/rustic");
 
-module.exports = { ref, db };
+module.exports = { db };
