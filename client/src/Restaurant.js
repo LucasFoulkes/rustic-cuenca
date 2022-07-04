@@ -2,11 +2,7 @@ import { useEffect, useState, useContext } from "react";
 import { SocketContext } from "./Socket";
 import { UserContext } from "./UserContext";
 import { FaConciergeBell } from "react-icons/fa";
-import {
-  format,
-  formatDistanceToNow,
-  formatDistanceToNowStrict,
-} from "date-fns";
+import { formatDistanceToNow, formatDistanceToNowStrict } from "date-fns";
 
 function Restaurant() {
   const { user } = useContext(UserContext);
